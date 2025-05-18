@@ -50,7 +50,7 @@ Navigate to the `Fig 3 A (Const HR)` and `Fig 3 B,C (Mono HR)` directories. This
     - The `jobsize_sampling_constHR.py` script is used to populate `jobsizes_constHR.csv`.
     - Files without the `_jobs` suffix handle dynamic job size sampling for each algorithm during the simulation.
 - **Figure 3 B and C (Potentially Non-Constant Arrival Rate):**
-    - Similar to Figure 3A, the files in `Fig 3 B,C (Mono HR)` are used to generate the results. Files with `_jobs` suffix (if present) likely use pre-sampled job sizes, while others handle dynamic sampling.
+    - Similar to Figure 3A, the files in `Fig 3 B,C (Mono HR)` are used to generate the results. Files with `_jobs` suffix use pre-sampled job sizes, while others handle dynamic sampling.
 
 Run the relevant `.ipynb` notebooks or `.py` scripts in these directories to reproduce the results for Figure 3.
 
@@ -58,17 +58,9 @@ Run the relevant `.ipynb` notebooks or `.py` scripts in these directories to rep
 
 Navigate to the `Fig 4 and 5` directory. These figures present a comparison between the DGN, Restart-in-i, and Retirement (QGI) algorithms. Run the scripts within this directory to generate the data and plots for these comparison figures.
 
-### Figure 6 and Supplementary Example
-
-Explore the `Fig 6` and `Supplementary example` directories for additional code and results presented in the paper's Figure 6 and supplementary materials.
-
-## Paper Reference
-
-A PDF of the accepted paper, "Learning Gittins Indices via Retirement: Tabular and Deep RL Approaches," should be available in this repository, potentially named `1571114374 paper.pdf`.
-
 ## Dependencies
 
-(While specific dependencies were not listed, typical Python libraries for RL and numerical computation would be required. Users may need to install libraries such as `numpy`, `scipy`, `tensorflow` or `pytorch` (for DGN/QWINN), and `matplotlib` for plotting. It's recommended to use a virtual environment.)
+(While specific dependencies were not listed, typical Python libraries for RL and numerical computation would be required. Users may need to install libraries such as `numpy`, `scipy`, `pytorch` (for DGN/QWINN), and `matplotlib` for plotting. It's recommended to use a virtual environment.)
 
 ```bash
 # Example of creating and activating a virtual environment
@@ -76,4 +68,4 @@ python -m venv venv
 source venv/bin/activate # On Windows, use `venv\Scripts\activate`
 
 # Example of installing potential dependencies
-pip install numpy scipy matplotlib tensorflow # or pytorch
+pip install numpy scipy matplotlib
