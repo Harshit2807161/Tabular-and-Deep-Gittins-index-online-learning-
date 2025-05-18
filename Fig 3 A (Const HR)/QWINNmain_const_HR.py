@@ -1,0 +1,163 @@
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+import QWINNnn_const_HR as QWINNnn
+import torch
+import copy
+from tqdm import tqdm 
+import csv
+from numpy import random
+#initialise-
+hist0 = []
+hist1 = []
+hist2 = []
+hist3 = []
+hist4 = []
+action = np.zeros(10)
+reward = np.zeros(10)
+state = np.zeros(10)
+arm = np.zeros(10)
+Q = np.zeros((2,2,2,10))
+
+hist0 = []
+hist2 = []
+
+M = np.zeros((2,10))
+class envir():
+    def __init__(self):
+        self.phi = 9
+        self.p1=[]
+        for i in range(10):
+            self.p1.append(0.05*(i+1))
+    def step(self,s,task):
+            reward = [0]*10
+            next_state = copy.copy(s)
+            if s[task] == 0:
+                next_state[task] = 0
+            else:
+                #print(s,task,get_prob(s[task],self.p1[task],self.lamda))
+                next_state[task] = np.random.choice([0,s[task]],1,p=[self.p1[task],1-self.p1[task]])[0]
+            if s[task]!=0 and next_state[task] == 0:
+                reward[task] = 1
+            elif s[task]==0:
+                reward[task] = -10000
+            else:
+                reward[task] = 0
+            return next_state,reward
+
+
+def choose_arm(s,W,epsilon):
+        wl= []
+        p = np.array([0,0,0,0,0,0,0,0,0,0])
+        if np.random.random() < epsilon:
+            for i in range(len(p)):
+                if s[i]!=0:
+                    wl.append(i)
+            arm_to_pull = np.random.choice(wl,1)[0]
+            p[arm_to_pull] = 1
+            return p
+        else:
+            p2 = {}
+            for i in range(len(p)):
+                if s[i]!=0:
+                    p2[i] = W[s[i]][i]
+            max_key = max(p2, key=p2.get)
+            p[max_key] = 1
+            return p
+    
+def gettask(action):
+        task = 0
+        for i in range(10):
+            if(action[i]==1):
+                task = i
+                break
+        return task
+        
+def save_list_to_csv(data_list, filename):
+    """
+    Save a list to a CSV file, where each element of the list is in a separate row of the same column.
+
+    Parameters:
+    data_list (list): The list to be saved.
+    filename (str): The name of the CSV file.
+    """
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        # Write each element of the list as a new row
+        for item in data_list:
+            writer.writerow([item])  # Each item is placed in a new row in a single column
+
+import time
+def game():
+    episodes = 2500
+    start_time = time.time()
+    rate = 1
+    env = envir()
+    beta = 0.6
+    eps = 1
+    agent = QWINNnn.Agent(3,2,-1)
+    t = []
+    step_no = 0
+    for episode_no in tqdm(range(episodes)):
+        state = np.array([1,1,1,1,1,1,1,1,1,1])
+        eps = eps*0.9995
+        while(state[0]!=0 or state[1]!=0 or state[2]!=0 or state[3]!=0 or state[4]!=0 or state[5]!=0 or state[6]!=0 or state[7]!=0 or state[8]!=0 or state[9]!=0):
+            if step_no==0:
+                learning_rate = 0.1
+            if step_no>=1:
+                learning_rate = 1 / math.ceil(step_no / 5000)
+                if(step_no%25==0):
+                    t = step_no
+                    beta = 0.2 / (1 + math.ceil(t* math.log(t) / 5000))
+                else:
+                    beta = 0
+            step_no+=1
+            arm = choose_arm(s=copy.copy(state),W=M,epsilon=eps)
+            action = arm
+            task = gettask(action)
+            next_state,reward = env.step(copy.copy(state),task)
+            '''print(state)
+            print(next_state)
+            print(reward)
+            print(action)'''
+            for i in range(10):
+                for k in range(2):
+                    agent.step(np.array([state[i],k,i]), action[i], reward[i], np.array([next_state[i],k,i]), False,M[k][i])
+            for i in range(10):
+                for k in range(2):
+                    input_tensor = torch.FloatTensor(np.array([k,k,i]))
+                    output_values = agent.qnetwork_local.forward(input_tensor)
+                    M[k][i] += beta*(output_values[1]-output_values[0])
+            state = next_state
+            curr_time = time.time()-start_time
+            #t.append(curr_time)
+        hist1.append(0.01*M[1][5])
+    plt.figure(figsize=(6,6))
+    plt.title('M vs time step plot',fontsize='xx-large')
+    plt.xlabel('Time step', fontsize = 'xx-large')
+    plt.ylabel('M',fontsize = 'xx-large')
+    #plt.plot(hist2,'-',c='blue',label='State 2')
+    plt.plot(hist1,'-',c='blue')
+    #plt.plot(hist0,'-',c='red',label='State 0')
+    plt.legend()
+    plt.show()
+    
+    
+    
+        
+game()
+
+print(M)
+
+plt.figure(figsize=(6,6))
+plt.title('M vs time step plot',fontsize='xx-large')
+plt.xlabel('Time step', fontsize = 'xx-large')
+plt.ylabel('M',fontsize = 'xx-large')
+plt.plot(hist4,'-',c='black',label='State 4')
+plt.plot(hist3,'-',c='yellow',label='State 3')
+plt.plot(hist2,'-',c='blue',label='State 2')
+plt.plot(hist1,'-',c='green',label='State 1')
+plt.plot(hist0,'-',c='red',label='State 0')
+plt.legend()
+
+plt.show()
